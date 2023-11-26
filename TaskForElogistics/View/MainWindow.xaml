@@ -1,0 +1,215 @@
+﻿<Window x:Class="TaskForElogistics.View.MainWindow"
+                xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                xmlns:telerik="http://schemas.telerik.com/2008/xaml/presentation" 
+                xmlns:local="clr-namespace:TaskForElogistics.ViewModel"
+                xmlns:converter="clr-namespace:TaskForElogistics.Service"
+        Title="MainWindow" WindowState="Maximized" Height="{Binding SystemParameters.PrimaryScreenHeight}" 
+    Width="{Binding SystemParameters.PrimaryScreenWidth}">
+    
+    <!--#region Ресурсы-->
+    <Window.Resources>
+        <converter:MultiValueConverter x:Key="MultiValueConverter"/>
+    </Window.Resources>
+    <!--#endregion-->
+
+    <!--#region Элементы окна-->
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="1.25*"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        
+        <!--#region Таблица курсов валют-->
+        <telerik:RadGridView Grid.Column="0" ItemsSource="{Binding Rates}"  Name="CurrencyRates"
+                             AutoGenerateColumns="False">
+            <telerik:RadGridView.Columns>
+                <telerik:GridViewDataColumn Header="Date" DataMemberBinding="{Binding Date}"  
+                    IsReadOnly="True" />
+                <telerik:GridViewDataColumn Header="Abbreviation" DataMemberBinding="{Binding Cur_Abbreviation}"/>
+                <telerik:GridViewDataColumn Header="Name" DataMemberBinding="{Binding Cur_Name}"  
+                    IsReadOnly="True" />
+                <telerik:GridViewDataColumn Header="OfficialRate" DataMemberBinding="{Binding Cur_OfficialRate}"/>
+            </telerik:RadGridView.Columns>
+        </telerik:RadGridView>
+        <!--#endregion-->
+        
+        <!--#region Панель управления-->
+        <Grid Grid.Column="1" Name="ControlPanel">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="30"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="35"/>
+                <RowDefinition Height="25"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="40"/>
+            </Grid.RowDefinitions>
+
+            <!--Текст пояснения-->
+            <telerik:RadHighlightTextBlock Grid.Row="0" Text="Период для запроса"  
+                                           HorizontalAlignment="Center"/>
+
+            <!--#region Запрос списка валют во временном диапазоне-->
+            <Grid Grid.Row="1" Name="Сalendars">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="80"/>
+                </Grid.ColumnDefinitions>
+
+                <!--#region Календарь начала-->
+                <Grid Grid.Column="0" Name="FirstRowCalendar">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="20"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <telerik:RadHighlightTextBlock Grid.Row="0" Text="От" HorizontalAlignment="Center" 
+                                                   Margin="0,0,5,0"/>
+                    <telerik:RadCalendar Grid.Row="1" DisplayMode="MonthView" Name="FirstCalendar" 
+                                         Margin="0,0,5,0"/>
+                </Grid>
+                <!--#endregion-->
+
+                <!--#region Календарь конца-->
+                <Grid Grid.Column="1" Name="SecondRowCalendar">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="20"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <telerik:RadHighlightTextBlock Grid.Row="0" Text="До" HorizontalAlignment="Center" 
+                                                   Margin="5,0,0,0"/>
+                    <telerik:RadCalendar Grid.Row="1" DisplayMode="MonthView" Name="SecondCalendar" 
+                                         Margin="5,0,0,0"/>
+                </Grid>
+                <!--#endregion-->
+
+                <!--#region Кнопка запроса-->
+                <telerik:RadButton  Grid.Column="2" Command="{Binding Search}" Name="SearchButton" Content="Найти"
+                                    HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <Button.CommandParameter>
+                        <MultiBinding Converter="{StaticResource MultiValueConverter}" Mode="OneWay">                            
+                            <Binding Path="SelectedDate" ElementName="FirstCalendar"/>
+                            <Binding Path="SelectedDate" ElementName="SecondCalendar"/>
+                        </MultiBinding>
+                    </Button.CommandParameter>
+                </telerik:RadButton>
+                <!--#endregion-->
+            </Grid>
+            <!--#endregion-->
+
+            <!--#region Запрос курсов валют-->
+            <Grid Grid.Row="2" Name="RowСurrencyLists">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <!--Текст пояснения-->
+                <telerik:RadHighlightTextBlock Grid.Column="0" Text="Список валют" HorizontalAlignment="Center" 
+                                               VerticalAlignment="Center"/>
+                <!--Список валют-->
+                <telerik:RadComboBox x:Name="RateNamesList" ItemsSource="{Binding CurrenciesName}"  Grid.Column="1"
+                                     VerticalAlignment="Center"/>
+                <!--Кнопка запроса-->
+                <telerik:RadButton  Grid.Column="2" Command="{Binding GetRates}" 
+                                    CommandParameter="{Binding ElementName=RateNamesList,Path=SelectedItem}" 
+                                    x:Name="RequestButton" Content="Запрос" HorizontalAlignment="Center" 
+                                    VerticalAlignment="Center" />
+            </Grid>
+            <!--#endregion-->
+
+            <!--Текст пояснения-->
+            <telerik:RadHighlightTextBlock Grid.Row="3" Text="График курса валют"  HorizontalAlignment="Center"/>
+            
+            <!--#region График курсов валют-->
+            <telerik:RadCartesianChart Grid.Row="4"  Margin="20,2,20,2">
+                
+                <!--#region Настройки grid таблицы-->
+                <telerik:RadCartesianChart.Grid>
+                    <telerik:CartesianChartGrid MajorLinesVisibility="XY" StripLinesVisibility="XY" IsTabStop="False">
+                        <telerik:CartesianChartGrid.YStripeBrushes>
+                            <SolidColorBrush Color="#FFD7D7D7" Opacity="0.3" />
+                            <SolidColorBrush Color="Transparent" />
+                        </telerik:CartesianChartGrid.YStripeBrushes>
+                        <telerik:CartesianChartGrid.XStripeBrushes>
+                            <SolidColorBrush Color="#FFD7D7D7" Opacity="0.3" />
+                            <SolidColorBrush Color="Transparent" />
+                        </telerik:CartesianChartGrid.XStripeBrushes>
+                    </telerik:CartesianChartGrid>
+                </telerik:RadCartesianChart.Grid>
+                <!--#endregion-->
+
+                <!--#region TrackBall-->
+                <telerik:RadCartesianChart.Behaviors>
+                    <telerik:ChartTrackBallBehavior SnapMode="None" />
+                </telerik:RadCartesianChart.Behaviors>
+                <!--#endregion-->
+
+                <!--#region Настройки TrackBall-->
+                <telerik:RadCartesianChart.Resources>
+                    <DataTemplate x:Key="trackBallInfoTemplate">
+                    <StackPanel>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="Date = "/>
+                            <TextBlock Text="{Binding DataPoint.Category}" />
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="BYN "/>
+                            <TextBlock Text="{Binding DataPoint.Value}" />
+                        </StackPanel>
+                    </StackPanel>
+                </DataTemplate>
+                </telerik:RadCartesianChart.Resources>
+                <!--#endregion-->
+
+                <!--#region Вертикаль-->
+                <telerik:RadCartesianChart.VerticalAxis>
+                    <telerik:LinearAxis Title="BYN"/>
+                </telerik:RadCartesianChart.VerticalAxis>
+                <!--#endregion-->
+
+                <!--#region Горизонталь-->
+                <telerik:RadCartesianChart.HorizontalAxis>
+                    <telerik:DateTimeContinuousAxis LabelFormat="dd.MM.yy" SmartLabelsMode="SmartStep"/>
+                </telerik:RadCartesianChart.HorizontalAxis>
+                <!--#endregion-->
+
+                <!--#region Построение точек-->
+                <telerik:LineSeries ItemsSource="{Binding Rates}" CategoryBinding="Date" ValueBinding="Cur_OfficialRate"
+                                    TrackBallInfoTemplate="{StaticResource trackBallInfoTemplate}" Stroke="#FF5AA4D4">
+                    <telerik:LineSeries.DataPoints >
+                        <telerik:CategoricalDataPoint Value="1"/>
+                        <telerik:CategoricalDataPoint Value="2"/>
+                        <telerik:CategoricalDataPoint Value="3"/>
+                    </telerik:LineSeries.DataPoints>
+                </telerik:LineSeries>
+                <!--#endregion-->
+                
+            </telerik:RadCartesianChart>
+            <!--#endregion-->
+
+            <!--#region Кнопки сохранения и открытия файла-->
+            <Grid Grid.Row="5" Name="RowButton">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                
+                <!--Кнопка открытия-->
+                <telerik:RadButton  Grid.Column="0" Command="{Binding OpenFile}" x:Name="OpenButton" 
+                                    Content="Открыть" HorizontalAlignment="Center" VerticalAlignment="Center" 
+                                    Width="{Binding Path=ActualWidth, ElementName=SaveButton}"/>
+
+                <!--Кнопка сохранения-->
+                <telerik:RadButton  Grid.Column="1" Command="{Binding SaveData}" x:Name="SaveButton" 
+                                    Content="Сохранить" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            </Grid>
+            <!--#endregion-->
+            
+        </Grid>
+        <!--#endregion-->
+        
+    </Grid>
+    <!--#endregion-->
+    
+</Window>
