@@ -12,23 +12,23 @@ namespace TaskForElogistics.Service
     */
     public class JsonFileService : IFileService
     {
-        public ObservableCollection<Rate> OpenFile(string filename)
+        public T OpenFile<T>(string filename, T rates)
         {
-            ObservableCollection<Rate> rates = new ObservableCollection<Rate>();
+            
             DataContractJsonSerializer jsonFormatter =
-                new DataContractJsonSerializer(typeof(ObservableCollection<Rate>));
+                new DataContractJsonSerializer(typeof(T));
             using (FileStream fs = new FileStream(filename, FileMode.OpenOrCreate))
             {
-                rates = jsonFormatter.ReadObject(fs) as ObservableCollection<Rate>;
+                rates = (T)jsonFormatter.ReadObject(fs);
             }
 
             return rates;
         }
 
-        public void SaveFile(string filename, ObservableCollection<Rate> ratesList)
+        public void SaveFile<T>(string filename, T ratesList)
         {
             DataContractJsonSerializer jsonFormatter =
-                new DataContractJsonSerializer(typeof(ObservableCollection<Rate>));
+                new DataContractJsonSerializer(typeof(T));
             using (FileStream fs = new FileStream(filename, FileMode.Create))
             {
                 jsonFormatter.WriteObject(fs, ratesList);

@@ -10,9 +10,9 @@ namespace TaskForElogistics.Service.Interface
     public interface IFileService
     {
         // функция открытия файла
-        ObservableCollection<Rate> OpenFile(string filename);
+        T OpenFile<T>(string filename, T rates);
 
         // функция сохранения файла
-        void SaveFile(string filename, ObservableCollection<Rate> rateList); 
+        void SaveFile<T>(string filename, T rateList); 
     }
 }

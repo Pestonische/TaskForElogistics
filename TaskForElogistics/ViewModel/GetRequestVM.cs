@@ -184,10 +184,8 @@ namespace TaskForElogistics.ViewModel
                 {                   
                     if (File.Exists(NameCurrencyFile))
                     {
-                        string text = File.ReadAllText(NameCurrencyFile);
-
-                        (DateTime s, ObservableCollection<Currency> cur) file = JsonConvert
-                                                .DeserializeObject<(DateTime, ObservableCollection<Currency>)>(text);
+                        (DateTime s, ObservableCollection<Currency> cur) file = (DateTime.Now, new ObservableCollection<Currency>());
+                        file = fileService.OpenFile(NameCurrencyFile, file);
 
                         if (DateTime.Compare(DateTime.Today, file.s) == 0)
                         {
@@ -200,10 +198,9 @@ namespace TaskForElogistics.ViewModel
                     var stream = GetStream("https://api.nbrb.by/exrates/currencies") ;
 
                     if (stream != null) _currencies = JsonConvert.DeserializeObject<ObservableCollection<Currency>>(
-                                                        new StreamReader(stream).ReadToEnd().ToString());                    
+                                                        new StreamReader(stream).ReadToEnd().ToString());
 
-                    string fileData = JsonConvert.SerializeObject((DateTime.Today, _currencies));
-                    File.WriteAllText(NameCurrencyFile, fileData);
+                    fileService.SaveFile(NameCurrencyFile, (DateTime.Today, _currencies));
                 }
                 else GetCurrenciesName();
             }
@@ -263,8 +260,7 @@ namespace TaskForElogistics.ViewModel
             {
                 if (dialogService.OpenFileDialog() == true)
                 {
-                    ObservableCollection<Rate> rates = fileService.OpenFile(dialogService.FilePath);
-                    Rates = rates;
+                    Rates = fileService.OpenFile(dialogService.FilePath, Rates);
                     dialogService.ShowMessage("Файл открыт");
                 }
             }
